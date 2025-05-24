@@ -33,10 +33,10 @@ class Detailed
  public:
   explicit Detailed(DetailedParams& params) : params_(params) {}
 
-  bool improve(DetailedMgr& mgr);
+  bool improve(DetailedMgr& mgr,sta::dbSta* sta);
 
  private:
-  void doDetailedCommand(std::vector<std::string>& args);
+  void doDetailedCommand(std::vector<std::string>& args,sta::dbSta* sta);//hyx changed
 
   DetailedParams& params_;
   DetailedMgr* mgr_ = nullptr;

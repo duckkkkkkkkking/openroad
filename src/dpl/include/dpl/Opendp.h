@@ -16,6 +16,8 @@
 #include <utility>  // pair
 #include <vector>
 
+#include "db_sta/dbSta.hh"
+
 #include "odb/db.h"
 
 namespace utl {
@@ -85,6 +87,8 @@ class Opendp
 {
  public:
   Opendp();
+  Opendp(sta::dbSta* sta_);
+  sta::dbSta* sta;
   ~Opendp();
 
   Opendp(const Opendp&) = delete;
@@ -132,7 +136,7 @@ class Opendp
   Padding* getPadding() { return padding_.get(); }
   void improvePlacement(int seed,
                         int max_displacement_x,
-                        int max_displacement_y);
+                        int max_displacement_y,sta::dbSta* sta_);
 
  private:
   using bgPoint

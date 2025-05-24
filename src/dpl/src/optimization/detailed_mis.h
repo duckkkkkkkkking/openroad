@@ -6,8 +6,11 @@
 #include <map>
 #include <string>
 #include <vector>
-
+#include "db_sta/dbSta.hh" //hyx changed
 #include "infrastructure/Coordinates.h"
+
+namespace sta { class dbSta; } //hyx changed
+
 namespace dpl {
 class Node;
 class Architecture;
@@ -48,7 +51,8 @@ class DetailedMis
   };
 
  public:
-  DetailedMis(Architecture* arch, Network* network);
+  //DetailedMis(Architecture* arch, Network* network); 
+  DetailedMis(Architecture* arch, Network* network,sta::dbSta* sta); //hyx changed
   virtual ~DetailedMis();
 
   void run(DetailedMgr* mgrPtr, const std::string& command);
@@ -75,6 +79,9 @@ class DetailedMis
 
   Architecture* arch_;
   Network* network_;
+  sta::dbSta* sta_; //hyx changed
+  std::vector<float> node_slack_;
+  const float slack_wt_ = 1.0f;
 
   std::vector<Node*> candidates_;
   std::vector<bool> movable_;

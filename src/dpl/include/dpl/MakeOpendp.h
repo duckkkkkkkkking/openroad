@@ -4,7 +4,7 @@
 #pragma once
 
 #include <tcl.h>
-
+#include "db_sta/dbNetwork.hh"
 namespace odb {
 class dbDatabase;
 }
@@ -12,12 +12,12 @@ class dbDatabase;
 namespace utl {
 class Logger;
 }
-
+namespace sta { class dbSta; }
 namespace dpl {
 
 class Opendp;
 
-dpl::Opendp* makeOpendp();
+dpl::Opendp* makeOpendp(sta::dbSta* sta);
 void initOpendp(dpl::Opendp* dpl,
                 odb::dbDatabase* db,
                 utl::Logger* logger,

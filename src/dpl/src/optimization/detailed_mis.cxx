@@ -43,6 +43,9 @@
 #include "util/journal.h"
 #include "utl/Logger.h"
 
+#include <sta/MinMax.hh>
+#include "db_sta/dbNetwork.hh"
+#include <sta/MinMax.hh> 
 using utl::DPL;
 
 namespace dpl {
@@ -65,11 +68,14 @@ struct DetailedMis::Bucket
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-DetailedMis::DetailedMis(Architecture* arch, Network* network)
-    : arch_(arch), network_(network)
+DetailedMis::DetailedMis(Architecture* arch, Network* network,sta::dbSta* sta)
+    : arch_(arch), network_(network),sta_(sta)
 {
 }
-
+// DetailedMis::(Architecture* arch, Network* network,sta::dbSta* sta)
+//     : arch_(arch), network_(network),sta_(sta)
+// {
+// }
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 DetailedMis::~DetailedMis()
@@ -194,6 +200,26 @@ void DetailedMis::run(DetailedMgr* mgrPtr, std::vector<std::string>& args)
 //////////////////////////////////////////////////////////////////////////////////
 void DetailedMis::place()
 {
+  //hyx changed
+  node_slack_.resize(network_->getNumNodes(), 0.0f);
+
+  sta::dbNetwork* dbnet = sta_->getDbNetwork();   
+  
+  const auto kMax = sta::MinMax::max();           
+  
+  for (auto& n_uptr : network_->getNodes()) {    
+    Node* n = n_uptr.get();
+    float worst = 0.0f;
+    odb::dbInst* inst = n->getDbInst();
+    if (!inst) continue;
+    for (odb::dbITerm* iterm : inst->getITerms()) {
+      if (auto* sta_pin = dbnet->dbToSta(iterm)) {   // 转换函数
+        float s = sta_->pinSlack(sta_pin, kMax);  // ✔直接拿 pinSlack
+        worst = std::min(worst, s);
+      }
+    }
+    node_slack_[n->getId()] = (worst < 0.0f) ? -worst : 0.0f;
+  }
   // Populate the grid.  Used for searching.
   populateGrid();
 
@@ -220,11 +246,27 @@ void DetailedMis::place()
 
     // Solve the flow.
     solveMatch();
-
-    // Increment times each node has been used.
-    for (const Node* ndj : neighbours_) {
-      ++timesUsed_[ndj->getId()];
+    //hyx changed
+    for (Node* n : neighbours_) {
+      float worst = 0.0f;
+    
+      /* ① 拿到该节点对应的 dbInst */
+      odb::dbInst* inst = n->getDbInst();
+      if (!inst)
+        continue;  // 终端或 filler，没有 dbInst
+    
+      /* ② 遍历实例所有 ITerm，计算 slack */
+      for (odb::dbITerm* iterm : inst->getITerms()) {
+        if (auto* sta_pin = dbnet->dbToSta(iterm)) {
+          float s = sta_->pinSlack(sta_pin, kMax);
+          worst   = std::min(worst, s);
+        }
+      }
+    
+      /* ③ 记录最坏负 slack 的绝对值 */
+      node_slack_[n->getId()] = (worst < 0.0f) ? -worst : 0.0f;
     }
+    
 
     // Update grid?  Or, do we need to even bother?
     ;
@@ -566,10 +608,12 @@ void DetailedMis::solveMatch()
       }
 
       // Okay to assign the cell to this location.
+      // hyx changed icost
       if (obj_ == DetailedMis::Hpwl) {
+        const float slack_cost = slack_wt_ * node_slack_[ndi->getId()];
         icost = getHpwl(ndi,
                         pos[j].first + ndi->getWidth() / 2,
-                        pos[j].second + ndi->getHeight() / 2);
+                        pos[j].second + ndi->getHeight() / 2)*0.5 +getDisp(ndi, pos[j].first, pos[j].second)*0.5 +slack_cost;
       } else {
         icost = getDisp(ndi, pos[j].first, pos[j].second);
       }

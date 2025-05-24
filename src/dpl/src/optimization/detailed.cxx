@@ -6,6 +6,7 @@
 
 #include "util/utility.h"
 #include "utl/Logger.h"
+#include "db_sta/dbSta.hh"
 
 // Detailed management of segments.
 #include "infrastructure/detailed_segment.h"
@@ -30,7 +31,7 @@ namespace dpl {
 ////////////////////////////////////////////////////////////////////////////////
 // Detailed::improve:
 ////////////////////////////////////////////////////////////////////////////////
-bool Detailed::improve(DetailedMgr& mgr)
+bool Detailed::improve(DetailedMgr& mgr,sta::dbSta* sta)
 {
   mgr_ = &mgr;
 
@@ -51,14 +52,14 @@ bool Detailed::improve(DetailedMgr& mgr)
         args.push_back(temp);
       }
       // Command ended by a semi-colon.
-      doDetailedCommand(args);
+      doDetailedCommand(args, sta);
       args.clear();
     } else {
       args.push_back(temp);
     }
   }
   // Last command; possible if no ending semi-colon.
-  doDetailedCommand(args);
+  doDetailedCommand(args, sta);
 
   // Note: If cell orientation was not the last script
   // command run, then we should/need to perform
@@ -105,7 +106,7 @@ bool Detailed::improve(DetailedMgr& mgr)
 
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
-void Detailed::doDetailedCommand(std::vector<std::string>& args)
+void Detailed::doDetailedCommand(std::vector<std::string>& args, sta::dbSta* sta)
 {
   if (args.empty()) {
     return;
@@ -137,7 +138,8 @@ void Detailed::doDetailedCommand(std::vector<std::string>& args)
   logger->info(DPL, 303, "Running algorithm for {:s}.", command);
 
   if (strcmp(args[0].c_str(), "mis") == 0) {
-    DetailedMis mis(arch_, network_);
+  
+    DetailedMis mis(arch_, network_, sta); //hyx changed
     mis.run(mgr_, args);
   } else if (strcmp(args[0].c_str(), "gs") == 0) {
     DetailedGlobalSwap gs(arch_, network_);

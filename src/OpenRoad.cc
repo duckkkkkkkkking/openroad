@@ -163,7 +163,7 @@ void OpenRoad::init(Tcl_Interp* tcl_interp,
   verilog_network_ = makeDbVerilogNetwork();
   ioPlacer_ = ppl::makeIoplacer();
   resizer_ = rsz::makeResizer();
-  opendp_ = dpl::makeOpendp();
+  opendp_ = dpl::makeOpendp(sta_);//hyx changed
   finale_ = fin::makeFinale();
   global_router_ = grt::makeGlobalRouter();
   restructure_ = rmp::makeRestructure();

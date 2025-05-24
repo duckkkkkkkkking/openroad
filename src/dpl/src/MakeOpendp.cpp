@@ -17,9 +17,9 @@ namespace dpl {
 // Tcl files encoded into strings.
 extern const char* dpl_tcl_inits[];
 
-dpl::Opendp* makeOpendp()
+dpl::Opendp* makeOpendp(sta::dbSta* sta)
 {
-  return new dpl::Opendp;
+  return new dpl::Opendp(sta);
 }
 
 void deleteOpendp(dpl::Opendp* opendp)

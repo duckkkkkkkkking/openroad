@@ -43,10 +43,15 @@ add_library(dpl_lib
   src/optimization/detailed_orient.cxx
   src/util/journal.cxx
 )
+# hyx changed
+#target_link_libraries(detailed_place PRIVATE sta)
+#target_include_directories(detailed_place PRIVATE ${STA_INCLUDE_DIRS})
 
 target_link_libraries(dpl_lib
   PUBLIC
     odb
+    OpenSTA
+    #openroad
   PRIVATE
     utl_lib
 )
@@ -55,6 +60,8 @@ target_include_directories(dpl_lib
   PUBLIC
     include
     ${LEMON_INCLUDE_DIRS}
+    $<TARGET_PROPERTY:sta,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:openroad,INTERFACE_INCLUDE_DIRECTORIES>
   PRIVATE
     src
 )
@@ -80,7 +87,6 @@ target_link_libraries(dpl
     dpl_lib
     gui
 )
-
 messages(
   TARGET dpl
 )

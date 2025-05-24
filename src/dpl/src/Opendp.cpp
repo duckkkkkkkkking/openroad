@@ -20,6 +20,8 @@
 #include "odb/util.h"
 #include "utl/Logger.h"
 
+#include "db_sta/dbSta.hh"
+
 namespace dpl {
 
 using std::round;
@@ -42,6 +44,13 @@ Opendp::Opendp()
 {
   dummy_cell_ = std::make_unique<Node>();
   dummy_cell_->setPlaced(true);
+}
+
+Opendp::Opendp(sta::dbSta* sta_)
+{
+  dummy_cell_ = std::make_unique<Node>();
+  dummy_cell_->setPlaced(true);
+  sta = sta_;
 }
 
 Opendp::~Opendp() = default;

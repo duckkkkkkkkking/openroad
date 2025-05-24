@@ -4,6 +4,7 @@
 #include "dpl/Opendp.h"
 #include "odb/util.h"
 #include "utl/Logger.h"
+#include "db_sta/dbSta.hh"
 
 // My stuff.
 #include "legalize_shift.h"
@@ -15,7 +16,8 @@ namespace dpl {
 ////////////////////////////////////////////////////////////////
 void Opendp::improvePlacement(const int seed,
                               const int max_displacement_x,
-                              const int max_displacement_y)
+                              const int max_displacement_y,
+                              sta::dbSta* sta)
 {
   logger_->report("Detailed placement improvement.");
 
@@ -77,7 +79,7 @@ void Opendp::improvePlacement(const int seed,
 
   // Run the script.
   Detailed dt(dtParams);
-  dt.improve(mgr);
+  dt.improve(mgr, sta); //hyx changed
 
   // Write solution back.
   updateDbInstLocations();
