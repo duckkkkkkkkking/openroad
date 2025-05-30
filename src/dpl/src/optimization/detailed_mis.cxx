@@ -613,7 +613,7 @@ void DetailedMis::solveMatch()
         const float slack_cost = slack_wt_ * node_slack_[ndi->getId()];
         icost = getHpwl(ndi,
                         pos[j].first + ndi->getWidth() / 2,
-                        pos[j].second + ndi->getHeight() / 2)*0.5 +getDisp(ndi, pos[j].first, pos[j].second)*0.5 +slack_cost;
+                        pos[j].second + ndi->getHeight() / 2)*0.5 +getDisp(ndi, pos[j].first, pos[j].second)*0.5 +slack_cost*10;
       } else {
         icost = getDisp(ndi, pos[j].first, pos[j].second);
       }
