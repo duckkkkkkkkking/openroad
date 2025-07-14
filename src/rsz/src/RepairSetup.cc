@@ -34,6 +34,7 @@
 #include "sta/Units.hh"
 #include "sta/VerilogWriter.hh"
 #include "utl/Logger.h"
+#include <chrono>  
 
 namespace rsz {
 
@@ -80,6 +81,7 @@ bool RepairSetup::repairSetup(const float setup_slack_margin,
                               const bool skip_buffer_removal,
                               const bool skip_last_gasp)
 {
+  this->getLoadTimeUsage = 0; //hyx changed
   bool repaired = false;
   init();
   constexpr int digits = 3;
@@ -94,16 +96,16 @@ bool RepairSetup::repairSetup(const float setup_slack_margin,
           move_sequence.push_back(resizer_->buffer_move);
           break;
         case MoveType::UNBUFFER:
-          move_sequence.push_back(resizer_->unbuffer_move);
+          //move_sequence.push_back(resizer_->unbuffer_move);
           break;
         case MoveType::SWAP:
-          move_sequence.push_back(resizer_->swap_pins_move);
+          //move_sequence.push_back(resizer_->swap_pins_move);
           break;
         case MoveType::SIZE:
           move_sequence.push_back(resizer_->size_move);
           break;
         case MoveType::CLONE:
-          move_sequence.push_back(resizer_->clone_move);
+          //move_sequence.push_back(resizer_->clone_move);
           break;
         case MoveType::SPLIT:
           move_sequence.push_back(resizer_->split_load_move);
@@ -193,8 +195,17 @@ bool RepairSetup::repairSetup(const float setup_slack_margin,
                 repair_tns_end_percent * 100.0);
 
   // Ensure that max cap and max fanout violations don't get worse
+
+  // hyx changed
+  // Ensure that max cap and max fanout violations don't get worse
+  // auto t_start = std::chrono::steady_clock::now();
   sta_->checkCapacitanceLimitPreamble();
   sta_->checkFanoutLimitPreamble();
+  // auto t_end   = std::chrono::steady_clock::now();
+  // double secs  = std::chrono::duration<double>(t_end - t_start).count();
+  // logger_->info(RSZ, 999, "Cap/Fanout preamble cost {:.6f} s", secs);
+  
+  //hyx changed
 
   int opto_iteration = 0;
   bool prev_termination = false;
@@ -406,13 +417,23 @@ bool RepairSetup::repairSetup(const float setup_slack_margin,
     }
   }  // for each violating endpoint
 
-  if (!skip_last_gasp) {
-    // do some last gasp setup fixing before we give up
-    OptoParams params(setup_slack_margin, verbose);
-    params.iteration = opto_iteration;
-    params.initial_tns = initial_tns;
-    repairSetupLastGasp(params, num_viols);
-  }
+  // // hyx changed
+  // auto t_start3 = std::chrono::steady_clock::now();
+  // if (!skip_last_gasp) {
+  //   // do some last gasp setup fixing before we give up
+  //   OptoParams params(setup_slack_margin, verbose);
+  //   params.iteration = opto_iteration;
+  //   params.initial_tns = initial_tns;
+  //   repairSetupLastGasp(params, num_viols);
+  // }
+  
+  //   //double secs2  = std::chrono::duration<double>(t_end2 - t_start2).count();
+    
+  // this->getLastGaspTimeUsage += std::chrono::duration<double>(std::chrono::steady_clock::now() - t_start3).count();
+  // logger_->info(RSZ, 997, "get Last gasp repairment cost {:.6f} s", getLastGaspTimeUsage); //hyx changed
+
+
+  //hyx changed
 
   printProgress(opto_iteration, true, true, false, num_viols);
 
@@ -461,7 +482,7 @@ bool RepairSetup::repairSetup(const float setup_slack_margin,
   if (resizer_->overMaxArea()) {
     logger_->error(RSZ, 25, "max utilization reached.");
   }
-
+  logger_->info(RSZ, 998, "get load delay cost {:.6f} s", getLoadTimeUsage); //hyx changed
   return repaired;
 }
 
@@ -553,6 +574,8 @@ bool RepairSetup::repairPath(Path* path,
     const DcalcAnalysisPt* dcalc_ap = path->dcalcAnalysisPt(sta_);
     const int lib_ap = dcalc_ap->libertyIndex();
     // Find load delay for each gate in the path.
+
+    // auto t_start2 = std::chrono::steady_clock::now(); // hyx changed
     for (int i = start_index; i < path_length; i++) {
       const Path* path = expanded.path(i);
       Vertex* path_vertex = path->vertex(sta_);
@@ -577,6 +600,11 @@ bool RepairSetup::repairPath(Path* path,
                    delayAsString(corner_arc->intrinsicDelay(), sta_, 3));
       }
     }
+    
+    // auto t_end2   = std::chrono::steady_clock::now();
+    //double secs2  = std::chrono::duration<double>(t_end2 - t_start2).count();
+    
+    // this->getLoadTimeUsage += std::chrono::duration<double>(t_end2 - t_start2).count();
 
     sort(
         load_delays.begin(),

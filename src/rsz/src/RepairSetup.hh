@@ -13,6 +13,7 @@
 #include "sta/MinMax.hh"
 #include "sta/StaState.hh"
 #include "utl/Logger.h"
+#include <chrono>
 
 namespace sta {
 class PathExpanded;
@@ -86,6 +87,8 @@ class RepairSetup : public sta::dbStaState
   void reportSwappablePins();
   // Rebuffer one net (for testing).
   // resizerPreamble() required.
+  double getLoadTimeUsage  ; //hyx changed
+  double getLastGaspTimeUsage; //hyx changed
 
  private:
   void init();
@@ -131,6 +134,8 @@ class RepairSetup : public sta::dbStaState
   static constexpr float inc_fix_rate_threshold_
       = 0.0001;  // default fix rate threshold = 0.01%
   static constexpr int max_last_gasp_passes_ = 10;
+
+  
 };
 
 }  // namespace rsz
