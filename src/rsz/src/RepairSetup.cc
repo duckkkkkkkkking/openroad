@@ -82,6 +82,8 @@ bool RepairSetup::repairSetup(const float setup_slack_margin,
                               const bool skip_last_gasp)
 {
   this->getLoadTimeUsage = 0; //hyx changed
+  auto t_repair = std::chrono::steady_clock::now(); //hyx changed
+
   bool repaired = false;
   init();
   constexpr int digits = 3;
@@ -96,7 +98,7 @@ bool RepairSetup::repairSetup(const float setup_slack_margin,
           move_sequence.push_back(resizer_->buffer_move);
           break;
         case MoveType::UNBUFFER:
-          //move_sequence.push_back(resizer_->unbuffer_move);
+          //move_sequence.push_back(resizer_->unbuffer_move); //hyx changed
           break;
         case MoveType::SWAP:
           //move_sequence.push_back(resizer_->swap_pins_move);
@@ -116,18 +118,18 @@ bool RepairSetup::repairSetup(const float setup_slack_margin,
   } else {
     move_sequence.clear();
     if (!skip_buffer_removal) {
-      move_sequence.push_back(resizer_->unbuffer_move);
+      //move_sequence.push_back(resizer_->unbuffer_move); //hyx changed
     }
     // Always  have sizing
     move_sequence.push_back(resizer_->size_move);
     if (!skip_pin_swap) {
-      move_sequence.push_back(resizer_->swap_pins_move);
+      //move_sequence.push_back(resizer_->swap_pins_move);
     }
     if (!skip_buffering) {
       move_sequence.push_back(resizer_->buffer_move);
     }
     if (!skip_gate_cloning) {
-      move_sequence.push_back(resizer_->clone_move);
+      //move_sequence.push_back(resizer_->clone_move);
     }
     if (!skip_buffering) {
       move_sequence.push_back(resizer_->split_load_move);
@@ -418,19 +420,18 @@ bool RepairSetup::repairSetup(const float setup_slack_margin,
   }  // for each violating endpoint
 
   // // hyx changed
-  // auto t_start3 = std::chrono::steady_clock::now();
-  // if (!skip_last_gasp) {
-  //   // do some last gasp setup fixing before we give up
-  //   OptoParams params(setup_slack_margin, verbose);
-  //   params.iteration = opto_iteration;
-  //   params.initial_tns = initial_tns;
-  //   repairSetupLastGasp(params, num_viols);
-  // }
+  auto t_start997 = std::chrono::steady_clock::now();
+  if (!skip_last_gasp) {
+    // do some last gasp setup fixing before we give up
+    OptoParams params(setup_slack_margin, verbose);
+    params.iteration = opto_iteration;
+    params.initial_tns = initial_tns;
+    repairSetupLastGasp(params, num_viols);
+  }
   
-  //   //double secs2  = std::chrono::duration<double>(t_end2 - t_start2).count();
+    //double secs2  = std::chrono::duration<double>(t_end2 - t_start2).count();
     
-  // this->getLastGaspTimeUsage += std::chrono::duration<double>(std::chrono::steady_clock::now() - t_start3).count();
-  // logger_->info(RSZ, 997, "get Last gasp repairment cost {:.6f} s", getLastGaspTimeUsage); //hyx changed
+  this->getLastGaspTimeUsage += std::chrono::duration<double>(std::chrono::steady_clock::now() - t_start997).count();
 
 
   //hyx changed
@@ -483,6 +484,14 @@ bool RepairSetup::repairSetup(const float setup_slack_margin,
     logger_->error(RSZ, 25, "max utilization reached.");
   }
   logger_->info(RSZ, 998, "get load delay cost {:.6f} s", getLoadTimeUsage); //hyx changed
+  logger_->info(RSZ, 997, "get Last gasp repairment cost {:.6f} s", getLastGaspTimeUsage); //hyx changed
+  logger_->info(RSZ, 996, "get Sizing move cost {:.6f} s", getSizeTimeUsage); //hyx changed
+  logger_->info(RSZ, 995, "get Buffering move cost {:.6f} s", getBufferTimeUsage); //hyx changed
+  logger_->info(RSZ, 994, "get Split Load move cost {:.6f} s", getSplitTimeUsage); //hyx changed
+  
+  this->getRepairTimeUsage += std::chrono::duration<double>(std::chrono::steady_clock::now() - t_repair).count();
+  logger_->info(RSZ, 993, "get repair setup cost {:.6f} s", getRepairTimeUsage); //hyx changed
+
   return repaired;
 }
 
@@ -652,6 +661,7 @@ bool RepairSetup::repairPath(Path* path,
                  drvr_index);
 
       for (BaseMove* move : move_sequence) {
+        auto t_moveStart = std::chrono::steady_clock::now(); //hyx changed
         debugPrint(logger_,
                    RSZ,
                    "moves",
@@ -675,6 +685,21 @@ bool RepairSetup::repairPath(Path* path,
           // Move on to the next gate
           break;
         }
+        // hyx changed
+        if(move == resizer_->buffer_move)
+        {
+          this->getBufferTimeUsage += std::chrono::duration<double>(std::chrono::steady_clock::now() - t_moveStart).count();
+        }
+        else if(move == resizer_->size_move)
+        {
+          this->getSizeTimeUsage += std::chrono::duration<double>(std::chrono::steady_clock::now() - t_moveStart).count();
+        }
+        else if(move == resizer_->split_load_move)
+        {
+          this->getSplitTimeUsage += std::chrono::duration<double>(std::chrono::steady_clock::now() - t_moveStart).count();
+
+        }
+        // hyx changed
         debugPrint(logger_,
                    RSZ,
                    "moves",

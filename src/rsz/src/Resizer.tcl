@@ -604,7 +604,10 @@ proc repair_timing { args } {
     set verbose 1
   }
 
+  #hyx changed
   set max_passes 10000
+  #set max_passes 1000000
+
   if { [info exists keys(-max_passes)] } {
     set max_passes $keys(-max_passes)
   }

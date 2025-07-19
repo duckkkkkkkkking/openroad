@@ -87,8 +87,12 @@ class RepairSetup : public sta::dbStaState
   void reportSwappablePins();
   // Rebuffer one net (for testing).
   // resizerPreamble() required.
-  double getLoadTimeUsage  ; //hyx changed
-  double getLastGaspTimeUsage; //hyx changed
+  double getLoadTimeUsage = 0 ; //hyx changed
+  double getLastGaspTimeUsage =0; //hyx changed logger 997
+  double getSizeTimeUsage = 0;  //hyx changed logger 996
+  double getBufferTimeUsage = 0; //hyx changed logger 995
+  double getSplitTimeUsage = 0; //hyx changed logger 994
+  double getRepairTimeUsage = 0; //hyx changed logger 993
 
  private:
   void init();
@@ -127,7 +131,7 @@ class RepairSetup : public sta::dbStaState
 
   sta::UnorderedMap<LibertyPort*, sta::LibertyPortSet> equiv_pin_map_;
 
-  static constexpr int decreasing_slack_max_passes_ = 50;
+  static constexpr int decreasing_slack_max_passes_ = 50; //hyx changed from 50 to 500
   static constexpr int print_interval_ = 10;
   static constexpr int opto_small_interval_ = 100;
   static constexpr int opto_large_interval_ = 1000;
