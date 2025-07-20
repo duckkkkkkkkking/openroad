@@ -60,7 +60,7 @@ bool Detailed::improve(DetailedMgr& mgr,sta::dbSta* sta)
   }
   // Last command; possible if no ending semi-colon.
   doDetailedCommand(args, sta);
-
+  
   // Note: If cell orientation was not the last script
   // command run, then we should/need to perform
   // orientation to ensure the cells are properly
@@ -129,7 +129,7 @@ void Detailed::doDetailedCommand(std::vector<std::string>& args, sta::dbSta* sta
   } else if (strcmp(args[0].c_str(), "orient") == 0) {
     command = "orienting";
   } else if (strcmp(args[0].c_str(), "default") == 0) {
-    command = "random improvement";
+    command = "random improvement"; //hyx changed
   } else if (strcmp(args[0].c_str(), "disallow_one_site_gaps") == 0) {
     command = "disallow_one_site_gaps";
   } else {
@@ -141,6 +141,9 @@ void Detailed::doDetailedCommand(std::vector<std::string>& args, sta::dbSta* sta
   
     DetailedMis mis(arch_, network_, sta); //hyx changed
     mis.run(mgr_, args);
+    logger->info(DPL, 899, "solveMatch cost {:.6f} s", mis.getSolveMatchTimeUsage()); //hyx changed
+    logger->info(DPL, 898, "max flow cost {:.6f} s", mis.getMaxFlowTimeUsage()); //hyx changed
+
   } else if (strcmp(args[0].c_str(), "gs") == 0) {
     DetailedGlobalSwap gs(arch_, network_);
     gs.run(mgr_, args);
@@ -154,11 +157,12 @@ void Detailed::doDetailedCommand(std::vector<std::string>& args, sta::dbSta* sta
     DetailedOrient orienter(arch_, network_);
     orienter.run(mgr_, args);
   } else if (strcmp(args[0].c_str(), "default") == 0) {
-    DetailedRandom random(arch_, network_);
+    DetailedRandom random(arch_, network_); // hyx changed
     random.run(mgr_, args);
   } else {
     return;
   }
+  
 
   // Different checks which are useful for debugging.
   // mgr_->checkRegionAssignment();

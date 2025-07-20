@@ -47,6 +47,7 @@
 #include "db_sta/dbNetwork.hh"
 #include <sta/MinMax.hh> 
 using utl::DPL;
+#include <chrono>
 
 namespace dpl {
 
@@ -65,6 +66,9 @@ struct DetailedMis::Bucket
   int j_ = 0;
   int travId_ = 0;
 };
+
+double DetailedMis::getSolveMatchTimeUsage(){return (double)this->solveMatchTimeUsage;} // hyx changed
+double DetailedMis::getMaxFlowTimeUsage(){return (double)this->maxFlowTimeUsage;} // hyx changed
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -96,6 +100,7 @@ void DetailedMis::run(DetailedMgr* mgrPtr, const std::string& command)
     args.push_back(token);
   }
   run(mgrPtr, args);
+  //mgrPtr_->getLogger()->info(DPL, bajiujiu, "solveMatch cost {:.6f} s", solveMatchTimeUsage);
 }
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -535,6 +540,7 @@ bool DetailedMis::gatherNeighbours(Node* ndi)
 //////////////////////////////////////////////////////////////////////////////////
 void DetailedMis::solveMatch()
 {
+  auto t_solveStart = std::chrono::steady_clock::now(); // hyx changed
   if (neighbours_.size() <= 1) {
     return;
   }
@@ -630,6 +636,9 @@ void DetailedMis::solveMatch()
     }
   }
   // Try max flow.
+
+  auto t_maxFlowStart = std::chrono::steady_clock::now(); // hyx changed
+
   lemon::Preflow<lemon::ListDigraph> preflow(g, u_i, supplyNode, demandNode);
   preflow.run();
   const int maxFlow = preflow.flowValue();
@@ -657,6 +666,9 @@ void DetailedMis::solveMatch()
 
   lemon::ListDigraph::ArcMap<int> flow(g);
   mincost.flowMap(flow);
+
+  this->maxFlowTimeUsage += std::chrono::duration<double>(std::chrono::steady_clock::now()-t_maxFlowStart).count(); //hyx changed
+
   Journal journal(mgrPtr_->getGrid(), mgrPtr_);
   for (lemon::ListDigraph::ArcMap<int>::ItemIt it(flow); it != lemon::INVALID;
        ++it) {
@@ -746,6 +758,9 @@ void DetailedMis::solveMatch()
       journal.removeLastAction();
     }
   }
+
+  this->solveMatchTimeUsage += std::chrono::duration<double>(std::chrono::steady_clock::now()-t_solveStart).count();//hyx changed
+  //mgrPtr_->getLogger()->info(DPL, bajiujiu, "solveMatch cost {:.6f} s", solveMatchTimeUsage); //hyx changed
 }
 
 //////////////////////////////////////////////////////////////////////////////////

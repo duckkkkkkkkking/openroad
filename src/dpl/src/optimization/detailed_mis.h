@@ -26,15 +26,17 @@ class DetailedMisParams
     Binning = 1,
     Colour = 2,
   };
-
-  double _maxDifferenceInMetric = 0.03;  // How much we allow the routine to
+  double _maxDifferenceInMetric = 0.10;
+  //double _maxDifferenceInMetric = 0.03;  // How much we allow the routine to
                                          // reintroduce overlap into placement
   unsigned _maxNumNodes = 15;  // Only consider this many number of nodes for
                                // B&B (<= MAX_BB_NODES)
-  unsigned _maxPasses = 1;     // Maximum number of B&B passes
+  unsigned _maxPasses = 5;     // Maximum number of B&B passes
   double _sizeTol = 1.1;       // Tolerance for what is considered same-size
   unsigned _skipNetsLargerThanThis = 50;  // Skip nets larger than this amount.
   Strategy _strategy = Binning;           // The type of strategy to consider
+  //Strategy _strategy = KDTree;  //hyx changed
+  //Strategy _strategy = Colour;
   bool _useSameSize = true;  // If 'false', cells can swap with approximately
                              // same-size locations
 };
@@ -57,6 +59,9 @@ class DetailedMis
 
   void run(DetailedMgr* mgrPtr, const std::string& command);
   void run(DetailedMgr* mgrPtr, std::vector<std::string>& args);
+
+  double getSolveMatchTimeUsage();
+  double getMaxFlowTimeUsage();
 
  private:
   struct Bucket;
@@ -106,6 +111,9 @@ class DetailedMis
   bool useSameColor_ = true;
   int maxTimesUsed_ = 2;
   Objective obj_ = DetailedMis::Hpwl;
+
+  double solveMatchTimeUsage = 0; //hyx changed
+  double maxFlowTimeUsage = 0; //hyx changed
 };
 
 }  // namespace dpl
