@@ -69,6 +69,7 @@ struct DetailedMis::Bucket
 
 double DetailedMis::getSolveMatchTimeUsage(){return (double)this->solveMatchTimeUsage;} // hyx changed
 double DetailedMis::getMaxFlowTimeUsage(){return (double)this->maxFlowTimeUsage;} // hyx changed
+double DetailedMis::getMaxFlowCount(){return (double)this->maxFlowCount;} // hyx changed
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -249,12 +250,15 @@ void DetailedMis::place()
       continue;
     }
 
+    
+
     // Solve the flow.
     solveMatch();
+    auto t_flashStaStart = std::chrono::steady_clock::now(); //hyx changed
     //hyx changed
     for (Node* n : neighbours_) {
       float worst = 0.0f;
-    
+      
       /* ① 拿到该节点对应的 dbInst */
       odb::dbInst* inst = n->getDbInst();
       if (!inst)
@@ -270,7 +274,11 @@ void DetailedMis::place()
     
       /* ③ 记录最坏负 slack 的绝对值 */
       node_slack_[n->getId()] = (worst < 0.0f) ? -worst : 0.0f;
+      // std::cout  << n->getId() <<" " ;
     }
+    // std::cout << std::endl;
+    this->flashStaTimeUsage += std::chrono::duration<double>(std::chrono::steady_clock::now() - t_flashStaStart).count(); //hyx changed
+    this->flashStaCount += 1; //hyx changed
     
 
     // Update grid?  Or, do we need to even bother?
@@ -668,6 +676,7 @@ void DetailedMis::solveMatch()
   mincost.flowMap(flow);
 
   this->maxFlowTimeUsage += std::chrono::duration<double>(std::chrono::steady_clock::now()-t_maxFlowStart).count(); //hyx changed
+  this->maxFlowCount += 1; //hyx changed
 
   Journal journal(mgrPtr_->getGrid(), mgrPtr_);
   for (lemon::ListDigraph::ArcMap<int>::ItemIt it(flow); it != lemon::INVALID;

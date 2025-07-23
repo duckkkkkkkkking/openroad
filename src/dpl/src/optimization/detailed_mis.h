@@ -26,10 +26,10 @@ class DetailedMisParams
     Binning = 1,
     Colour = 2,
   };
-  double _maxDifferenceInMetric = 0.10;
+  double _maxDifferenceInMetric = 0.03;
   //double _maxDifferenceInMetric = 0.03;  // How much we allow the routine to
                                          // reintroduce overlap into placement
-  unsigned _maxNumNodes = 15;  // Only consider this many number of nodes for
+  unsigned _maxNumNodes = 15;  // Only consider this many number of nodes for //changed from 15 to 30
                                // B&B (<= MAX_BB_NODES)
   unsigned _maxPasses = 5;     // Maximum number of B&B passes
   double _sizeTol = 1.1;       // Tolerance for what is considered same-size
@@ -62,6 +62,7 @@ class DetailedMis
 
   double getSolveMatchTimeUsage();
   double getMaxFlowTimeUsage();
+  double getMaxFlowCount(); //hyx changed
 
  private:
   struct Bucket;
@@ -105,7 +106,7 @@ class DetailedMis
 
   // Other.
   int skipEdgesLargerThanThis_ = 100;
-  int maxProblemSize_ = 25;
+  int maxProblemSize_ = 25; //changed from 25 to 100
   int traversal_ = 0;
   bool useSameSize_ = true;
   bool useSameColor_ = true;
@@ -114,6 +115,9 @@ class DetailedMis
 
   double solveMatchTimeUsage = 0; //hyx changed
   double maxFlowTimeUsage = 0; //hyx changed
+  double maxFlowCount = 0; //hyx changed
+  double flashStaTimeUsage = 0; //hyx changed
+  double flashStaCount = 0; //hyx changed
 };
 
 }  // namespace dpl

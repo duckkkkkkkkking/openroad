@@ -143,6 +143,9 @@ void Detailed::doDetailedCommand(std::vector<std::string>& args, sta::dbSta* sta
     mis.run(mgr_, args);
     logger->info(DPL, 899, "solveMatch cost {:.6f} s", mis.getSolveMatchTimeUsage()); //hyx changed
     logger->info(DPL, 898, "max flow cost {:.6f} s", mis.getMaxFlowTimeUsage()); //hyx changed
+    logger->info(DPL, 897, "max flow count {:.6f}", mis.getMaxFlowCount()); //hyx changed
+    logger->info(DPL, 896, "flashSta cost {:.6f} s", mis.flashStaTimeUsage); //hyx changed
+    logger->info(DPL, 895, "flashSta count {:.6f}", mis.flashStaCount); //hyx changed
 
   } else if (strcmp(args[0].c_str(), "gs") == 0) {
     DetailedGlobalSwap gs(arch_, network_);
