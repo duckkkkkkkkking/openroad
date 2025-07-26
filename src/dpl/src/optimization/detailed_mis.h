@@ -6,6 +6,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <omp.h> 
 #include "db_sta/dbSta.hh" //hyx changed
 #include "infrastructure/Coordinates.h"
 
@@ -63,6 +64,7 @@ class DetailedMis
   double getSolveMatchTimeUsage();
   double getMaxFlowTimeUsage();
   double getMaxFlowCount(); //hyx changed
+  
 
  private:
   struct Bucket;
@@ -73,8 +75,12 @@ class DetailedMis
   void buildGrid();
   void clearGrid();
   void populateGrid();
-  bool gatherNeighbours(Node* ndi);
-  void solveMatch();
+  //bool gatherNeighbours(Node* ndi); //hyx changed
+  bool gatherNeighbours(Node* seed, std::vector<Node*>& neigh_out);
+  bool tryLockNeighbourhood(Bucket* bkt); //hyx changed
+  void unlockNeighbourhood(); //hyx changed
+  //void solveMatch(); //hyx changed
+  void solveMatch(const std::vector<Node*>& neigh);
   uint64_t getHpwl(const Node* ndi, DbuX xi, DbuY yi);
   uint64_t getDisp(const Node* ndi, DbuX xi, DbuY yi);
 
@@ -92,7 +98,10 @@ class DetailedMis
   std::vector<Node*> candidates_;
   std::vector<bool> movable_;
   std::vector<int> colors_;
-  std::vector<Node*> neighbours_;
+  //std::vector<Node*> neighbours_; // hyx changed
+  std::vector<std::vector<Node*>> seed_neighbours_;
+  std::vector<std::vector<omp_lock_t>> bucket_locks_;
+
 
   // Grid used for binning and locating cells.
   std::vector<std::vector<Bucket*>> grid_;
@@ -106,7 +115,7 @@ class DetailedMis
 
   // Other.
   int skipEdgesLargerThanThis_ = 100;
-  int maxProblemSize_ = 25; //changed from 25 to 100
+  int maxProblemSize_ = 10; //changed from 25 to 100
   int traversal_ = 0;
   bool useSameSize_ = true;
   bool useSameColor_ = true;

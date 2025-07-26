@@ -12,6 +12,13 @@ list(APPEND CMAKE_PREFIX_PATH
 # Link to where ortools was found
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+find_package(OpenMP REQUIRED)
+if (OpenMP_CXX_FOUND)
+  add_compile_options(${OpenMP_CXX_FLAGS})
+  link_libraries(OpenMP::OpenMP_CXX)   # 给所有 target
+endif()
+
+
 include("openroad")
 
 
