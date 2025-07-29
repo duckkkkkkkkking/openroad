@@ -236,9 +236,11 @@ void DetailedMis::place()
 
   // 1) 提前分配 neighbours 数组
   seed_neighbours_.clear();
-  seed_neighbours_.resize(candidates_.size());
+  //seed_neighbours_.resize(candidates_.size()); 
+  seed_neighbours_.resize(network_->getNumNodes()); // hyx changed
 
-  std::vector<char> has_neigh(candidates_.size(), 0);
+  //std::vector<char> has_neigh(candidates_.size(), 0);
+  std::vector<char> has_neigh(network_->getNumNodes(), 0);
 
   // 2) 单线程收集邻居
   for (const Node* seed : candidates_) {
@@ -308,7 +310,7 @@ void DetailedMis::place()
       /* ---------- 安全区 ---------- */
       solveMatch(seed_neighbours_[seed->getId()]);
       unlockNeighbourhood();
-      #pragma omp atomic
+      //#pragma omp atomic
       ++timesUsed_[seed->getId()];
     }
 
