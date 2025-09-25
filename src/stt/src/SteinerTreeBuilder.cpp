@@ -75,6 +75,7 @@ Tree SteinerTreeBuilder::makeSteinerTree(const std::vector<int>& x,
                                          const int drvr_index,
                                          const float alpha)
 {
+  //std::cout<<"alpha"<<alpha<<std::endl;
   if (alpha > 0.0) {
     Tree tree = pdr::primDijkstra(x, y, drvr_index, alpha, logger_);
     if (checkTree(tree)) {
