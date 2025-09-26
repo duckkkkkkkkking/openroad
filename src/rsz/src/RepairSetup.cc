@@ -10,6 +10,7 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <fstream>
 
 #include "BaseMove.hh"
 #include "BufferMove.hh"
@@ -150,8 +151,70 @@ bool RepairSetup::repairSetup(const float setup_slack_margin,
   // vertex. This may be the place where we can do some round robin fun to
   // individually control each clock domain instead of just fixating on fixing
   // one.
+  std::ofstream ofs_slack(std::string("slack_record.txt"));
+  odb::dbBlock* block = db_network_->block();
+  for (odb::dbInst* dbinst : block->getInsts()) {
+    sta::Instance* inst = db_network_->dbToSta(dbinst);
+    if (!inst) continue;
+
+    //logger->report("Inst: {}", network->pathName(inst));
+
+    // 遍历该实例的所有 pin
+    std::unique_ptr<sta::InstancePinIterator> pin_iter{ network_->pinIterator(inst) };
+    while (pin_iter && pin_iter->hasNext() ){
+      sta::Pin* pin = pin_iter->next();
+
+      // 分别取得 load/drvr 顶点
+      bool as_load = network_->isLoad(pin);
+      bool as_drvr = network_->isDriver(pin);
+      if(as_drvr == true && as_drvr == false)
+      {
+        sta::Vertex* v_drvr = graph_->pinDrvrVertex(pin);
+        ofs_slack<<"drvr "<<v_drvr->to_string(sta_)<<" "<<sta_->vertexSlack(v_drvr,max_)<<"\n";
+
+      }
+      else if(as_load == true && as_drvr == false)
+      {
+        sta::Vertex* v_load = graph_->pinLoadVertex(pin);
+        ofs_slack<<"load "<<v_load->to_string(sta_)<<" "<<sta_->vertexSlack(v_load,max_)<<"\n";
+
+      }
+      else if(as_load == true && as_drvr == true)
+      {
+        sta::Vertex* v_drvr = graph_->pinDrvrVertex(pin);
+
+        ofs_slack<<"Both "<<v_drvr->to_string(sta_)<<" !"<<"\n";
+
+        ofs_slack<<"drvr "<<v_drvr->to_string(sta_)<<" "<<sta_->vertexSlack(v_drvr,max_)<<"\n";
+        sta::Vertex* v_load = graph_->pinLoadVertex(pin);
+        ofs_slack<<"load "<<v_load->to_string(sta_)<<" "<<sta_->vertexSlack(v_load,max_)<<"\n";
+      }
+      else
+      {
+        ofs_slack<<"wrong! "<<"\n";
+      }
+
+      // to_string 需要 sta 上下文；为空时打印占位
+      // const std::string load_str = v_load ? v_load->to_string(sta_) : std::string("<null>");
+      // const std::string drvr_str = v_drvr ? v_drvr->to_string(sta_) : std::string("<null>");
+
+      // logger->report("  Pin: {:<30}  loadVtx: {:<20}  drvrVtx: {}",
+      //                network->pathName(pin), load_str, drvr_str);
+    }
+  }
+
+
+
+
+
+  std::ofstream ofs(std::string("end_slack_record.txt"));
   for (Vertex* end : *endpoints) {
     const Slack end_slack = sta_->vertexSlack(end, max_);
+    if (!ofs.is_open()) {
+        std::cerr << "Error: cannot open file " <<std::endl;
+        
+    }
+    ofs<<end->to_string(sta_)<<" "<<end_slack<<"\n";
     if (end_slack < setup_slack_margin) {
       violating_ends.emplace_back(end, end_slack);
     }
