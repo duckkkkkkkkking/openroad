@@ -168,7 +168,7 @@ bool RepairSetup::repairSetup(const float setup_slack_margin,
       // 分别取得 load/drvr 顶点
       bool as_load = network_->isLoad(pin);
       bool as_drvr = network_->isDriver(pin);
-      if(as_drvr == true && as_drvr == false)
+      if(as_drvr == true && as_load == false)
       {
         sta::Vertex* v_drvr = graph_->pinDrvrVertex(pin);
         ofs_slack<<"drvr,"<<v_drvr->to_string(sta_)<<","<<sta_->vertexSlack(v_drvr,max_)<<"\n";
@@ -177,7 +177,9 @@ bool RepairSetup::repairSetup(const float setup_slack_margin,
       else if(as_load == true && as_drvr == false)
       {
         sta::Vertex* v_load = graph_->pinLoadVertex(pin);
-        ofs_slack<<"load,"<<v_load->to_string(sta_)<<","<<sta_->vertexSlack(v_load,max_)<<"\n";
+        auto* libcell = network_->libertyCell(inst);
+        auto* lpin = network_->libertyPort(pin);
+        ofs_slack<<"load,"<<v_load->to_string(sta_)<<","<<sta_->vertexSlack(v_load,max_)<<","<<lpin->capacitance()<<"\n";
 
       }
       else if(as_load == true && as_drvr == true)
