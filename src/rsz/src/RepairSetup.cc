@@ -179,8 +179,30 @@ bool RepairSetup::repairSetup(const float setup_slack_margin,
         sta::Vertex* v_load = graph_->pinLoadVertex(pin);
         auto* libcell = network_->libertyCell(inst);
         auto* lpin = network_->libertyPort(pin);
-        ofs_slack<<"load,"<<v_load->to_string(sta_)<<","<<sta_->vertexSlack(v_load,max_)<<","<<lpin->capacitance()<<"\n";
+        //sta::EdgeId load_edge_id = v_load->in_edges_;
+        ofs_slack<<"load,"<<v_load->to_string(sta_)<<", slack, "<<sta_->vertexSlack(v_load,max_)<<", cap, "<<lpin->capacitance()<<", prevVertex, ";
+                  //  ", prevpath "<<v_load->paths()->prevEdge(sta_)->from(graph_)->to_string(sta_)<<"\n";
+                   //<<" , prevVertex ";
+        
+        for (sta::VertexInEdgeIterator it(v_load, graph_); it.hasNext(); ) 
+        {
+            sta::Edge* e = it.next();
 
+            // 仅保留连线边（net 上的边）；门弧不是“网络 driver”
+            if (!e->isWire()) continue;
+
+            // 可选：跳过被禁用的边（约束/when/环路剪断等）
+            if (e->isDisabledConstraint() || e->isDisabledCond() || e->isDisabledLoop())
+              continue;
+
+            // 关键：用带参数的 from(graph) 取得“驱动这个 net 的顶点”
+            if (e->from(graph_) != nullptr) 
+            {
+              auto* v_load_drvr = e->from(graph_);
+              ofs_slack<<v_load_drvr->to_string(sta_)<<",";
+            }
+          }
+        ofs_slack<<" "<<"\n";
       }
       else if(as_load == true && as_drvr == true)
       {
