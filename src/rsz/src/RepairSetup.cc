@@ -181,6 +181,7 @@ bool RepairSetup::repairSetup(const float setup_slack_margin,
         auto* lpin = network_->libertyPort(pin);
         //sta::EdgeId load_edge_id = v_load->in_edges_;
         ofs_slack<<"load,"<<v_load->to_string(sta_)<<", slack, "<<sta_->vertexSlack(v_load,max_)<<", cap, "<<lpin->capacitance()<<", prevVertex, ";
+          // " , level, "<<v_load->level()<<", slack, "<<sta_->vertexSlack(v_load,max_)<<", cap, "<<lpin->capacitance()<<", prevVertex, ";
                   //  ", prevpath "<<v_load->paths()->prevEdge(sta_)->from(graph_)->to_string(sta_)<<"\n";
                    //<<" , prevVertex ";
         
