@@ -96,7 +96,7 @@ bool RepairSetup::repairSetup(const float setup_slack_margin,
     for (MoveType move : sequence) {
       switch (move) {
         case MoveType::BUFFER:
-          move_sequence.push_back(resizer_->buffer_move);
+          // move_sequence.push_back(resizer_->buffer_move);
           break;
         case MoveType::UNBUFFER:
           //move_sequence.push_back(resizer_->unbuffer_move); //hyx changed
@@ -105,13 +105,13 @@ bool RepairSetup::repairSetup(const float setup_slack_margin,
           //move_sequence.push_back(resizer_->swap_pins_move);
           break;
         case MoveType::SIZE:
-          move_sequence.push_back(resizer_->size_move);
+          // move_sequence.push_back(resizer_->size_move);
           break;
         case MoveType::CLONE:
           //move_sequence.push_back(resizer_->clone_move);
           break;
         case MoveType::SPLIT:
-          move_sequence.push_back(resizer_->split_load_move);
+          // move_sequence.push_back(resizer_->split_load_move);
           break;
       }
     }
@@ -122,18 +122,18 @@ bool RepairSetup::repairSetup(const float setup_slack_margin,
       //move_sequence.push_back(resizer_->unbuffer_move); //hyx changed
     }
     // Always  have sizing
-    move_sequence.push_back(resizer_->size_move);
+    // move_sequence.push_back(resizer_->size_move);
     if (!skip_pin_swap) {
       //move_sequence.push_back(resizer_->swap_pins_move);
     }
     if (!skip_buffering) {
-      move_sequence.push_back(resizer_->buffer_move);
+      // move_sequence.push_back(resizer_->buffer_move);
     }
     if (!skip_gate_cloning) {
       //move_sequence.push_back(resizer_->clone_move);
     }
     if (!skip_buffering) {
-      move_sequence.push_back(resizer_->split_load_move);
+      // move_sequence.push_back(resizer_->split_load_move);
     }
   }
 
