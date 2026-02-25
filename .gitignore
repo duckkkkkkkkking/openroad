@@ -63,3 +63,5 @@ bazel-OpenROAD
 projectview.bazelproject
 .bsp/
 .bazelbsp/
+dist
+build-portable

@@ -40,6 +40,9 @@ option(USE_SYSTEM_ABC "Use system shared ABC library" OFF)
 # Allow disabling tests
 option(ENABLE_TESTS "Enable OpenROAD tests" ON)
 
+# Build a redistributable package with relative runtime lookup paths.
+option(OPENROAD_PORTABLE "Build OpenROAD in portable distribution mode" OFF)
+
 # Allow enabling address sanitizer
 option(ASAN "Enable Address Sanitizer" OFF)
 

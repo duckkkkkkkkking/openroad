@@ -10,7 +10,14 @@ list(APPEND CMAKE_PREFIX_PATH
 )
 
 # Link to where ortools was found
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+if(OPENROAD_PORTABLE)
+  # Portable mode resolves bundled shared libraries from ../lib.
+  set(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib")
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+else()
+  # Keep discovered library paths for regular local installs.
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+endif()
 
 find_package(OpenMP REQUIRED)
 if (OpenMP_CXX_FOUND)
@@ -112,20 +119,27 @@ endif()
 find_package(TCL)
 
 # check for tclReadline
-set(TCL_READLINE_POSSIBLE_NAMES tclreadline-2.1.0
-    tclreadline-2.3.2 tclreadline-2.3.6 tclreadline-2.3.7 tclreadline-2.3.8
+if (OPENROAD_PORTABLE)
+  # Avoid host readline/tinfo dependency in portable bundles.
+  set(TCL_READLINE_LIBRARY "")
+  set(TCL_READLINE_H "")
+  message(STATUS "TCL readline disabled for portable build")
+else()
+  set(TCL_READLINE_POSSIBLE_NAMES tclreadline-2.1.0
+      tclreadline-2.3.2 tclreadline-2.3.6 tclreadline-2.3.7 tclreadline-2.3.8
+      )
+  find_library(TCL_READLINE_LIBRARY
+    NAMES tclreadline ${TCL_READLINE_POSSIBLE_NAMES}
+    PATHS ${TCL_LIB_PATHS}
     )
-find_library(TCL_READLINE_LIBRARY
-  NAMES tclreadline ${TCL_READLINE_POSSIBLE_NAMES}
-  PATHS ${TCL_LIB_PATHS}
-  )
-if (TCL_READLINE_LIBRARY)
-  message(STATUS "TCL readline library: ${TCL_READLINE_LIBRARY}")
-endif()
+  if (TCL_READLINE_LIBRARY)
+    message(STATUS "TCL readline library: ${TCL_READLINE_LIBRARY}")
+  endif()
 
-find_path(TCL_READLINE_H tclreadline.h)
-if (TCL_READLINE_H)
-  message(STATUS "TCL readline header: ${TCL_READLINE_H}")
+  find_path(TCL_READLINE_H tclreadline.h)
+  if (TCL_READLINE_H)
+    message(STATUS "TCL readline header: ${TCL_READLINE_H}")
+  endif()
 endif()
 
 option(BUILD_TCLX "Build with tclX included" ON)
@@ -341,6 +355,11 @@ target_link_libraries(openroad
   ${TCL_LIBRARY}
   ${CMAKE_THREAD_LIBS_INIT}
 )
+
+if(OPENROAD_PORTABLE)
+  # Avoid host libstdc++/libgcc version coupling across Ubuntu 22.04 machines.
+  target_link_options(openroad PRIVATE -static-libstdc++ -static-libgcc)
+endif()
 
 target_compile_definitions(openroad PRIVATE BUILD_TYPE="${CMAKE_BUILD_TYPE}")
 
